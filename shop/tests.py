@@ -84,10 +84,16 @@ class AdminPagesTests(TestCase):
 
 
 # WebSocket / chat consumer tests
-from channels.testing import WebsocketCommunicator
-from croquettes_config.asgi import application
 import asyncio
+import unittest
+try:
+    from channels.testing import WebsocketCommunicator
+    from croquettes_config.asgi import application
+    HAS_CHANNELS = True
+except Exception:
+    HAS_CHANNELS = False
 
+@unittest.skipUnless(HAS_CHANNELS, "channels/testing or its dependencies (daphne) are not available")
 @override_settings(SESSION_ENGINE='django.contrib.sessions.backends.signed_cookies')
 class ChatConsumerTests(TestCase):
     def setUp(self):
@@ -149,4 +155,12 @@ class ChatConsumerTests(TestCase):
         # staff should see the conversation
         self.client.login(username='staff', password='pass')
         from django.urls import reverse
-        r = self.client.get(reverse('admin_
+        r = self.client.get(reverse('admin_messages_list'))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn(f"Commande #{self.order.id}", r.content.decode())
+        # staff replies
+        r = self.client.post(reverse('admin_message_detail', args=[conv.id]), {'message': 'Bonjour, en cours'}, follow=True)
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(Message.objects.filter(conversation=conv, content='Bonjour, en cours').exists())
+        # a notification should be created for the user
+        self.assertTrue(Notification.objects.filter(recipient=self.user, verb__icontains=f"Nouveau message sur la commande #{self.order.id}").exists())
