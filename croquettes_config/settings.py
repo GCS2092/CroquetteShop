@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',  # Pour WebSockets (chat + notifications temps réel)
     'shop',
 ]
 
@@ -58,8 +59,37 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'croquettes_config.wsgi.application'
 
+# ASGI + Channels configuration for WebSockets
+ASGI_APPLICATION = 'croquettes_config.asgi.application'
+
+# Channels layer (Redis) - use REDIS_URL env var in production
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        },
+    },
+}
+
+# Fallback pour développement local : InMemory channel layer si DEBUG=True
+if DEBUG and os.environ.get('USE_INMEMORY_CHANNELS', 'True') == 'True':
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        }
+    }
+
 # Database
-if os.environ.get('DATABASE_URL'):
+# En développement local, utiliser SQLite si DEBUG=True et pas de DATABASE_URL fournie.
+if DEBUG and not os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+elif os.environ.get('DATABASE_URL'):
     # Production (Render)
     DATABASES = {
         'default': dj_database_url.config(
@@ -68,7 +98,7 @@ if os.environ.get('DATABASE_URL'):
         )
     }
 else:
-    # Development (Local PostgreSQL)
+    # Development (Local PostgreSQL) - keep for setups with Postgres
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

@@ -1,16 +1,27 @@
 """
-ASGI config for croquettes_config project.
+ASGI config for croquettes_config project (Channels-enabled).
 
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
+This file configures a ProtocolTypeRouter with HTTP and WebSocket support.
 """
 
 import os
+import django
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'croquettes_config.settings')
+django.setup()
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'croquettes_config.settings')
+# Import websocket routes from the shop app
+from shop import routing as shop_routing
 
-application = get_asgi_application()
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            shop_routing.websocket_urlpatterns
+        )
+    ),
+})

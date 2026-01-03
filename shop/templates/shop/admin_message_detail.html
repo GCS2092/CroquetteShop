@@ -1,0 +1,26 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Conversation — Commande #{{ conversation.order.id }}</h3>
+  <div id="admin-chat-log" data-order-id="{{ conversation.order.id }}" style="border:1px solid #ddd; padding:10px; height:400px; overflow:auto;">
+    {% for msg in messages %}
+      <p><strong>{{ msg.sender.username }}:</strong> {{ msg.content }} <small class="text-muted">{{ msg.created_at }}</small></p>
+    {% endfor %}
+  </div>
+
+  <form method="post" class="mt-3">
+    {% csrf_token %}
+    <div class="input-group">
+      <input type="text" name="message" class="form-control" placeholder="Votre message..." autocomplete="off" />
+      <button type="submit" class="btn btn-primary">Envoyer</button>
+    </div>
+  </form>
+</div>
+
+{% block scripts %}
+<script src="{% static 'shop/js/admin_chat.js' %}"></script>
+{% endblock %}
+
+{% endblock %}

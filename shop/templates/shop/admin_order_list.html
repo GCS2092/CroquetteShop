@@ -1,0 +1,53 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Gestion des commandes</h3>
+
+  <form class="row g-3 mb-3" method="get">
+    <div class="col-auto">
+      <select name="status" class="form-select">
+        <option value="">-- Tous statuts --</option>
+        <option value="pending">En attente</option>
+        <option value="confirmed">Confirmée</option>
+        <option value="delivered">Livrée</option>
+        <option value="cancelled">Annulée</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary">Filtrer</button>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Client</th>
+          <th>Montant</th>
+          <th>Statut</th>
+          <th>Assigné à</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td>#{{ order.id }}</td>
+          <td>{% if order.user %}{{ order.user.username }}{% else %}{{ order.guest_name }} (invité){% endif %}</td>
+          <td>{{ order.total_amount }} XOF</td>
+          <td>{{ order.get_status_display }}</td>
+          <td>{% if order.assigned_to %}{{ order.assigned_to.username }}{% else %}-{% endif %}</td>
+          <td>
+            <a href="{% url 'admin_order_detail' order.id %}" class="btn btn-sm btn-primary">Gérer</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">Aucune commande.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

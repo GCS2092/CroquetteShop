@@ -85,6 +85,9 @@
                                     <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    <a href="{% url 'order_chat' order.id %}" class="btn btn-sm btn-secondary ms-2">
+                                        <i class="fas fa-comments"></i>
+                                    </a>
                                 </td>
                             </tr>
                             {% endfor %}

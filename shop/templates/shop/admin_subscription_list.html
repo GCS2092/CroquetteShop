@@ -1,0 +1,36 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Gestion des abonnements</h3>
+
+  <div class="table-responsive mt-3">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Utilisateur</th>
+          <th>Fréquence</th>
+          <th>Statut</th>
+          <th>Prochaine livraison</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub in subscriptions %}
+        <tr>
+          <td>#{{ sub.id }}</td>
+          <td>{{ sub.user.username }}</td>
+          <td>{{ sub.get_frequency_display }}</td>
+          <td>{{ sub.get_status_display }}</td>
+          <td>{{ sub.next_delivery }}</td>
+          <td><a href="{% url 'admin_subscription_detail' sub.id %}" class="btn btn-sm btn-primary">Gérer</a></td>
+        </tr>
+        {% empty %}
+          <tr><td colspan="6">Aucun abonnement.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -52,3 +52,17 @@ class UserProfileForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
         }
+
+
+# --- Forms admin pour commandes / abonnements ---
+from .models import Order, Subscription
+
+class OrderAdminForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['status', 'assigned_to', 'notes']
+
+class SubscriptionAdminForm(forms.ModelForm):
+    class Meta:
+        model = Subscription
+        fields = ['status', 'next_delivery']

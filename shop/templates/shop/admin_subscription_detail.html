@@ -1,0 +1,17 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Abonnement #{{ subscription.id }}</h3>
+
+  <p><strong>Utilisateur :</strong> {{ subscription.user.username }}</p>
+  <p><strong>Produits :</strong> {% for product in subscription.products.all %}{{ product.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-success">Enregistrer</button>
+  </form>
+
+</div>
+{% endblock %}

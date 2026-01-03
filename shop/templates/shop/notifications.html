@@ -1,0 +1,28 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Notifications</h3>
+  <div class="d-flex justify-content-between align-items-center">
+    <small class="text-muted">Vous pouvez marquer les notifications comme lues.</small>
+    <button id="mark-all-read" class="btn btn-sm btn-outline-primary">Marquer tout comme lu</button>
+  </div>
+  <ul id="notifications-list" class="list-group mt-3">
+    {% for n in notifications %}
+      <li data-id="{{ n.id }}" class="list-group-item d-flex justify-content-between align-items-start{% if n.unread %} list-group-item-warning{% endif %}">
+        <div>
+          <div>{{ n.verb }} {% if n.url %} <a href="{{ n.url }}">Voir</a>{% endif %}</div>
+          <small class="text-muted">{{ n.created_at }}</small>
+        </div>
+        <div>
+          {% if n.unread %}
+            <button class="btn btn-sm btn-outline-secondary mark-read">Marquer lu</button>
+          {% endif %}
+        </div>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-muted">Aucune notification.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

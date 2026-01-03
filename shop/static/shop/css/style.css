@@ -1,0 +1,31 @@
+/* Product images responsive wrapper */
+.product-image {
+    position: relative;
+    width: 100%;
+    /* Maintain consistent aspect ratio across cards */
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background-color: #f8f9fa;
+}
+
+.product-image__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Ensure older browsers still behave reasonably */
+@supports not (aspect-ratio: 1 / 1) {
+    .product-image {
+        height: 250px;
+    }
+    @media (max-width: 576px) {
+        .product-image { height: 200px; }
+    }
+}
+
+/* Small helper to ensure cards don't overflow when images are tall */
+.card .product-image {
+    max-height: 350px;
+}

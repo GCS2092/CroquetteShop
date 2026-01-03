@@ -13,7 +13,9 @@
     <div class="col-12 col-sm-6 col-md-4 col-lg-3">
         <div class="card h-100 shadow-sm">
             {% if product.image %}
-            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+            <div class="product-image">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image__img" loading="lazy">
+            </div>
             {% else %}
             <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">
                 <i class="fas fa-image fa-3x"></i>

@@ -1,0 +1,43 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Commande #{{ order.id }}</h3>
+
+  <div class="row">
+    <div class="col-md-8">
+      <h5>Client</h5>
+      <p>{% if order.user %}{{ order.user.get_full_name }} (@{{ order.user.username }}){% else %}{{ order.guest_name }} (invité){% endif %}</p>
+
+      <h5>Articles</h5>
+      <ul>
+        {% for item in order.items.all %}
+          <li>{{ item.quantity }} × {{ item.product.name }} — {{ item.price }} XOF</li>
+        {% endfor %}
+      </ul>
+
+      <h5>Historique</h5>
+      <ul>
+        {% for h in status_history %}
+          <li>{{ h.created_at }} — {{ h.old_status }} → {{ h.new_status }} (par {% if h.changed_by %}{{ h.changed_by.username }}{% else %}Système{% endif %})</li>
+        {% empty %}
+          <li>Aucun changement.</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="col-md-4">
+      <h5>Actions</h5>
+      <div class="mb-2">
+        <a class="btn btn-secondary w-100 mb-2" href="{% url 'order_chat' order.id %}">
+          <i class="fas fa-comments"></i> Discussion
+        </a>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-success">Enregistrer</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Conversations — Messages non lus</h3>
+  <div class="list-group mt-3">
+    {% for item in conversations %}
+      <a href="{% url 'admin_message_detail' item.conv.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start">
+        <div>
+          <div><strong>Commande #{{ item.conv.order.id }}</strong> — {% if item.last %}{{ item.last.sender.username }}: {{ item.last.content|truncatechars:80 }}{% endif %}</div>
+          <small class="text-muted">{{ item.conv.created_at }}</small>
+        </div>
+        {% if item.unread and item.unread > 0 %}
+        <span class="badge bg-warning text-dark rounded-pill">{{ item.unread }}</span>
+        {% endif %}
+      </a>
+    {% empty %}
+      <div class="alert alert-info">Aucune conversation trouvée.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

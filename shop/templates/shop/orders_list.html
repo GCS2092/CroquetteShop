@@ -1,0 +1,30 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Mes commandes</h3>
+  {% if orders %}
+  <table class="table">
+    <thead>
+      <tr><th>#</th><th>Date</th><th>Montant</th><th>Statut</th><th>Action</th></tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td>#{{ order.id }}</td>
+        <td>{{ order.created_at|date:"d/m/Y" }}</td>
+        <td>{{ order.total_amount }} XOF</td>
+        <td>{{ order.get_status_display }}</td>
+        <td>
+          <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-primary">Voir</a>
+          <a href="{% url 'order_chat' order.id %}" class="btn btn-sm btn-secondary ms-2">Discussion</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="alert alert-info">Vous n'avez pas encore de commandes.</div>
+  {% endif %}
+</div>
+{% endblock %}

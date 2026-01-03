@@ -46,6 +46,17 @@ class Order(models.Model):
     
     # Si l'utilisateur est connecté, on lie la commande à son compte
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Utilisateur")
+
+    # Optionnel : commande assignée à un admin (vendeur = is_staff)
+    assigned_to = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={'is_staff': True},
+        related_name='assigned_orders',
+        verbose_name='Assigné à (admin)'
+    )
     
     # Informations pour les invités (obligatoires si user est null)
     guest_name = models.CharField(max_length=200, blank=True, verbose_name="Nom (invité)")
@@ -163,3 +174,138 @@ def save_user_profile(sender, instance, **kwargs):
     """Sauvegarder le profil quand l'utilisateur est sauvegardé"""
     if hasattr(instance, 'profile'):
         instance.profile.save()
+
+
+# --- Notifications / Chat / Historique des statuts ---
+class Notification(models.Model):
+    """Notifications pour utilisateurs (site only)."""
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    verb = models.CharField(max_length=255, verbose_name='Action')
+    url = models.CharField(max_length=255, blank=True, verbose_name='Lien relatif')
+    unread = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification pour {self.recipient.username} - {self.verb}"
+
+
+class OrderStatusHistory(models.Model):
+    """Historique des changements de statut d'une commande."""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_history')
+    old_status = models.CharField(max_length=20, verbose_name='Ancien statut')
+    new_status = models.CharField(max_length=20, verbose_name='Nouveau statut')
+    changed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Modifié par')
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Order #{self.order.id}: {self.old_status} -> {self.new_status}"
+
+
+class Conversation(models.Model):
+    """Conversation liée à une commande (client <-> admin)."""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='conversations')
+    participants = models.ManyToManyField(User, related_name='conversations')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Conversation #{self.id} (Order #{self.order.id})"
+
+
+class Message(models.Model):
+    """Message d'une conversation."""
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Message #{self.id} by {self.sender.username}"
+
+
+# Signals pour notifications et historique de statut
+from django.db.models.signals import post_save, pre_save
+
+@receiver(post_save, sender=Order)
+def order_post_save(sender, instance, created, **kwargs):
+    # Nouvelle commande : notifier les admin (is_staff=True) et l'utilisateur
+    if created:
+        admins = User.objects.filter(is_staff=True)
+        for admin in admins:
+            Notification.objects.create(
+                recipient=admin,
+                verb=f"Nouvelle commande #{instance.id}",
+                url=f"/admin/shop/order/{instance.id}/change/"
+            )
+        if instance.user:
+            Notification.objects.create(
+                recipient=instance.user,
+                verb=f"Votre commande #{instance.id} a été passée.",
+                url=f"/commande/{instance.id}/"
+            )
+
+
+# Lorsqu'une Notification est créée, on envoie aussi un push via Channels au destinataire
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
+@receiver(post_save, sender=Notification)
+def notification_post_save(sender, instance, created, **kwargs):
+    if not created:
+        return
+    channel_layer = get_channel_layer()
+    group = f"notifications_{instance.recipient.id}"
+    payload = {
+        'id': instance.id,
+        'verb': instance.verb,
+        'url': instance.url,
+        'created_at': instance.created_at.isoformat(),
+    }
+    try:
+        async_to_sync(channel_layer.group_send)(group, {
+            'type': 'notify',
+            'payload': payload,
+        })
+    except Exception:
+        # Ne pas planter si Channel layer n'est pas disponible (dev without Redis)
+        pass
+
+@receiver(pre_save, sender=Order)
+def order_status_change(sender, instance, **kwargs):
+    # Si la commande existe déjà, on détecte changement de statut
+    if not instance.pk:
+        return
+    try:
+        old = Order.objects.get(pk=instance.pk)
+    except Order.DoesNotExist:
+        return
+    if old.status != instance.status:
+        OrderStatusHistory.objects.create(
+            order=instance,
+            old_status=old.status,
+            new_status=instance.status,
+            changed_by=None
+        )
+        # Notifications côté client et admin assigné
+        if instance.user:
+            Notification.objects.create(
+                recipient=instance.user,
+                verb=f"Le statut de votre commande #{instance.id} est passé de {old.status} à {instance.status}.",
+                url=f"/commande/{instance.id}/"
+            )
+        if instance.assigned_to:
+            Notification.objects.create(
+                recipient=instance.assigned_to,
+                verb=f"Le statut de la commande #{instance.id} a changé: {instance.status}.",
+                url=f"/admin/shop/order/{instance.id}/change/"
+            )

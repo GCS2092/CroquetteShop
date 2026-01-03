@@ -1,0 +1,83 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Discussion - Commande #{{ order.id }}</h3>
+
+  <div id="chat-log" style="border:1px solid #ddd; padding:10px; height:300px; overflow:auto;">
+    {% for msg in messages %}
+      <p>
+        <strong>{{ msg.sender.username }}:</strong>
+        {{ msg.content }}
+        <small class="text-muted">{{ msg.created_at }}</small>
+      </p>
+    {% empty %}
+      <p class="text-muted">Aucun message pour l'instant.</p>
+    {% endfor %}
+  </div>
+
+  <form id="chat-form" class="mt-3">
+    <div class="input-group">
+      <input
+        type="text"
+        id="chat-message-input"
+        class="form-control"
+        placeholder="Votre message..."
+        autocomplete="off"
+        disabled
+      />
+      <button type="submit" class="btn btn-primary">Envoyer</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  const orderId = "{{ order.id }}";
+  const chatLog = document.getElementById('chat-log');
+  const messageInput = document.getElementById('chat-message-input');
+  const chatForm = document.getElementById('chat-form');
+
+  const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const chatSocket = new WebSocket(
+    `${wsScheme}://${window.location.host}/ws/orders/${orderId}/`
+  );
+
+  chatSocket.onopen = function () {
+    messageInput.removeAttribute('disabled');
+  };
+
+  chatSocket.onmessage = function (e) {
+    let data;
+    try {
+      data = JSON.parse(e.data);
+    } catch {
+      return;
+    }
+
+    const p = document.createElement('p');
+    p.innerHTML = `<strong>${data.sender}:</strong> ${data.message}
+      <small class="text-muted">${data.created_at}</small>`;
+
+    chatLog.appendChild(p);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  };
+
+  chatSocket.onerror = function (e) {
+    console.error('WebSocket error', e);
+  };
+
+  chatSocket.onclose = function () {
+    messageInput.setAttribute('disabled', 'disabled');
+  };
+
+  chatForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    if (!message || chatSocket.readyState !== WebSocket.OPEN) return;
+    chatSocket.send(JSON.stringify({ message }));
+    messageInput.value = '';
+  });
+})();
+</script>
+{% endblock %}
