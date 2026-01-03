@@ -1,0 +1,104 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Commander - Croquettes Shop{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="fas fa-credit-card"></i> Finaliser la commande</h1>
+
+<!-- Message d'encouragement pour créer un compte -->
+{% if not user.is_authenticated %}
+<div class="alert alert-info">
+    <h6 class="d-flex align-items-center">
+        <i class="fas fa-user-plus me-2"></i> Pourquoi créer un compte ?
+    </h6>
+    <ul class="mb-2 small">
+        <li>Suivez vos commandes</li>
+        <li>Points de fidélité</li>
+        <li>Abonnements mensuels</li>
+        <li>Commande rapide</li>
+    </ul>
+    <a href="{% url 'signup' %}" class="btn btn-primary btn-sm">Créer un compte</a>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Formulaire -->
+    <div class="col-12 col-lg-8 mb-4 checkout-form-mobile">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Informations de livraison</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if not user.is_authenticated %}
+                    <h6 class="mb-3">Vos informations</h6>
+                    <div class="row">
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="form-label">Nom complet *</label>
+                            <input type="text" name="guest_name" class="form-control" required>
+                        </div>
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="form-label">Email *</label>
+                            <input type="email" name="guest_email" class="form-control" required>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Téléphone</label>
+                            <input type="tel" name="guest_phone" class="form-control">
+                        </div>
+                    </div>
+                    <hr>
+                    {% endif %}
+                    
+                    <h6 class="mb-3">Lieu de livraison</h6>
+                    <div class="mb-3">
+                        <select name="delivery_location" class="form-select" required>
+                            <option value="">-- Choisir un lieu --</option>
+                            {% for location in delivery_locations %}
+                            <option value="{{ location.id }}">{{ location.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notes (optionnel)</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Ex: Livraison le matin"></textarea>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-money-bill-wave"></i> 
+                        <strong>Paiement à la livraison</strong> (espèces)
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="fas fa-check-circle"></i> Confirmer la commande
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Récapitulatif -->
+    <div class="col-12 col-lg-4 order-summary-mobile">
+        <div class="card shadow sticky-top" style="top: 20px;">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Récapitulatif</h5>
+            </div>
+            <div class="card-body">
+                {% for item in cart %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small">{{ item.quantity }}x {{ item.product.name|truncatewords:3 }}</span>
+                    <strong class="small">{{ item.total_price }} XOF</strong>
+                </div>
+                {% endfor %}
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Total</h5>
+                    <h4 class="text-primary mb-0">{{ cart.get_total_price }} XOF</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

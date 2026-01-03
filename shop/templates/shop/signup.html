@@ -1,0 +1,89 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Inscription - Croquettes Shop{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white text-center">
+                <h3><i class="fas fa-user-plus"></i> Créer un compte</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-gift"></i> Avantages de créer un compte :</h6>
+                    <ul class="mb-0">
+                        <li>🎁 Gagnez des points à chaque achat</li>
+                        <li>📦 Suivez vos commandes en temps réel</li>
+                        <li>🔄 Accédez aux abonnements mensuels</li>
+                        <li>⚡ Commandez plus rapidement</li>
+                    </ul>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nom d'utilisateur *</label>
+                        {{ form.username }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Prénom *</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nom *</label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        {{ form.email }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Téléphone</label>
+                        {{ form.phone }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Mot de passe *</label>
+                        {{ form.password1 }}
+                        <small class="form-text text-muted">8 caractères minimum</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Confirmer le mot de passe *</label>
+                        {{ form.password2 }}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="fas fa-user-plus"></i> Créer mon compte
+                    </button>
+                </form>
+                
+                <hr>
+                <p class="text-center mb-0">
+                    Vous avez déjà un compte ? 
+                    <a href="{% url 'login' %}">Se connecter</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

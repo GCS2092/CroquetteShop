@@ -1,0 +1,98 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Récompenses - Croquettes Shop{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-5"><i class="fas fa-gift"></i> Programme de Fidélité</h1>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-body">
+                <h3 class="text-center mb-4">Comment ça marche ?</h3>
+                
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <div class="p-3">
+                            <i class="fas fa-shopping-cart fa-3x text-primary mb-3"></i>
+                            <h5>1. Achetez</h5>
+                            <p>Gagnez 1 point pour chaque 100 XOF dépensés</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="p-3">
+                            <i class="fas fa-star fa-3x text-warning mb-3"></i>
+                            <h5>2. Accumulez</h5>
+                            <p>Vos points s'accumulent automatiquement</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="p-3">
+                            <i class="fas fa-gift fa-3x text-success mb-3"></i>
+                            <h5>3. Profitez</h5>
+                            <p>Échangez vos points contre des récompenses</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h4 class="mb-4">Récompenses disponibles</h4>
+                
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">🎁 Pack découverte gratuit</h5>
+                                <p class="mb-0 text-muted">1 paquet de croquettes au choix</p>
+                            </div>
+                            <span class="badge bg-primary" style="font-size: 1.2rem;">50 points</span>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">🎉 Réduction 10%</h5>
+                                <p class="mb-0 text-muted">Sur votre prochaine commande</p>
+                            </div>
+                            <span class="badge bg-primary" style="font-size: 1.2rem;">100 points</span>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">🚀 Livraison prioritaire</h5>
+                                <p class="mb-0 text-muted">Livraison en premier</p>
+                            </div>
+                            <span class="badge bg-primary" style="font-size: 1.2rem;">150 points</span>
+                        </div>
+                    </div>
+                    
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">👑 Abonnement premium 1 mois</h5>
+                                <p class="mb-0 text-muted">Livraison hebdomadaire offerte</p>
+                            </div>
+                            <span class="badge bg-warning text-dark" style="font-size: 1.2rem;">300 points</span>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if user.is_authenticated %}
+                <div class="alert alert-success mt-4 text-center">
+                    <h5>Vous avez <strong>{{ user.rewardpoint.points }} points</strong></h5>
+                    <a href="{% url 'profile' %}" class="btn btn-primary mt-2">Voir mon profil</a>
+                </div>
+                {% else %}
+                <div class="alert alert-info mt-4 text-center">
+                    <a href="{% url 'signup' %}" class="btn btn-primary">Créer un compte pour participer</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Commande #{{ order.id }} - Croquettes Shop{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'profile' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour au profil
+    </a>
+</div>
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="fas fa-receipt"></i> Commande #{{ order.id }}</h4>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5>Informations</h5>
+                <p><strong>Date :</strong> {{ order.created_at|date:"d/m/Y à H:i" }}</p>
+                <p><strong>Statut :</strong> 
+                    {% if order.status == 'pending' %}
+                    <span class="badge bg-warning">En attente</span>
+                    {% elif order.status == 'confirmed' %}
+                    <span class="badge bg-info">Confirmée</span>
+                    {% elif order.status == 'delivered' %}
+                    <span class="badge bg-success">Livrée</span>
+                    {% else %}
+                    <span class="badge bg-danger">Annulée</span>
+                    {% endif %}
+                </p>
+                <p><strong>Livraison :</strong> {{ order.delivery_location.name }}</p>
+            </div>
+            <div class="col-md-6">
+                <h5>Paiement</h5>
+                <p><strong>Mode :</strong> Paiement à la livraison</p>
+                <p><strong>Montant total :</strong> <span class="h4 text-primary">{{ order.total_amount }} XOF</span></p>
+            </div>
+        </div>
+        
+        {% if order.notes %}
+        <div class="alert alert-info">
+            <strong>Notes :</strong> {{ order.notes }}
+        </div>
+        {% endif %}
+        
+        <h5>Articles commandés</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Prix unitaire</th>
+                    <th>Quantité</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.price }} XOF</td>
+                    <td>{{ item.quantity }}</td>
+                    <td><strong>{{ item.get_total }} XOF</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-end"><strong>Total :</strong></td>
+                    <td><h5 class="text-primary mb-0">{{ order.total_amount }} XOF</h5></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}
